@@ -162,6 +162,7 @@ function ting_adhl_recommendations($faust, $numResults = 10) {
 }
 
 function ting_adhl_save_top_recommendation($covers) {
+  $number_of_top_recommendations = 40;
   $key = array_rand($covers);
   $object = $covers[$key];
   $top_recommendations = variable_get('ting_adhl_top_recommendations');
@@ -176,11 +177,22 @@ function ting_adhl_save_top_recommendation($covers) {
       break;
     }
   }
-  if (!$found && count($top_recommendations)>= 24) {
+  if (!$found && count($top_recommendations)>= $number_of_top_recommendations) {
     array_shift($top_recommendations);   
   }
   $top_recommendations[] = $object;
   variable_set('ting_adhl_top_recommendations',$top_recommendations);
+}
+
+function ting_adhl_check_local_covers($covers_ids) {
+  $result_ids = array();
+  foreach ($covers_ids as $cover_id) {
+    $path = ting_covers_object_path($cover_id->localId);
+    if (file_exists($path)) {
+      $result_ids[$cover_id->localId] = $cover_id;
+    } 
+  }
+  return $result_ids;
 }
 
 function ting_adhl_check_covers($covers_ids, $number_of_results) {
@@ -190,7 +202,7 @@ function ting_adhl_check_covers($covers_ids, $number_of_results) {
   foreach ($covers_ids as $cover_id) {
     // Determine if the local id is a known negative.
     if (cache_get('ting_covers:' . $cover_id->localId, FALSE)) {
-      $result_ids[$cover_id->localId] = FALSE;
+      continue;
     }
 
     $path = ting_covers_object_path($cover_id->localId);
