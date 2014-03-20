@@ -34,24 +34,56 @@ function ting_adhl_recommendation_list_ctools_content_types() {
  * Return the pane contents.
  */
 function ting_adhl_recommendation_list_content_type_render($subtype, $conf, $panel_args, $contexts) {
-  // Get the objects to base the recommendation on based on the first supplied
-  // context
-  foreach ($contexts as $context) {
-    $id = $context->get_original_argument()->getId();
-    break;
-  }
-  $parts = explode(":", $id);
-  if (isset($parts[1])) {
-    $ting_object_id = $parts[1];
-    drupal_add_js(drupal_get_path('module', 'ting_adhl') . '/js/ting_adhl.js');
-    drupal_add_js(array('ting_adhl_objectId' => $ting_object_id), 'setting');
-  }
-
-  // Build the block, if then context was present.
   $block = new stdClass();
-  $block->content = '<div id="ting-adhl-recommendation"> </div>';
+  $block->content = '';
 
+  $ting_object_id = ting_adhl_get_id($contexts);
+  if ($ting_object_id) {
+    $output = ting_adhl_check_cache($ting_object_id);
+    if ($output) {
+      $block->content = $output;
+    } else {
+      drupal_add_js(drupal_get_path('module', 'ting_adhl') . '/js/ting_adhl.js');
+      drupal_add_js(array('ting_adhl_objectId' => $ting_object_id), 'setting');
+      $block->content = '<div id="ting-adhl-recommendation"> </div>';
+    }
+  }
   return $block;
+}
+
+function ting_adhl_check_cache($ting_object_id) {
+  $output = null;
+  $cache = cache_get('ting-adhl-cache-' . $ting_object_id, 'cache');
+  if ($cache) {
+    $covers = $cache->data;
+    $local_covers = ting_adhl_check_local_covers($covers);
+    //If we lost more than 1 coverimage we reload from addi server with ajax call.
+    if (count($covers) <= count($local_covers) + 1) {
+      $output = ting_adhl_render_cover($covers);
+    }
+  }
+  return $output;
+}
+
+function ting_adhl_get_id($contexts) {
+// Get the objects to base the recommendation on based on the first supplied
+// context
+  $id = null;
+  $ting_object_id = null;
+  foreach ($contexts as $context) {
+    $object = $context->get_original_argument();
+    if ($object) {
+      $id = $object->getId();
+      break;
+    }
+  }
+  if ($id) {
+    $parts = explode(":", $id);
+    if (isset($parts[1])) {
+      $ting_object_id = $parts[1];
+    }
+  }
+  return $ting_object_id;
 }
 
 /**

@@ -37,6 +37,7 @@ function ting_adhl_top_recommendation_list_content_type_render($subtype, $conf, 
   // Get the objects to base the recommendation on based on the first supplied
   // context
     //drupal_add_js(drupal_get_path('module', 'ting_adhl') . '/js/ting_top_adhl.js');
+
   $output = '';
   $number_of_results = 21;
   $top_recommendations = variable_get('ting_adhl_top_recommendations');
@@ -49,7 +50,6 @@ function ting_adhl_top_recommendation_list_content_type_render($subtype, $conf, 
   // Build the block, if then context was present.
   $block = new stdClass();
   $block->content = $output;
-
   return $block;
 }
 

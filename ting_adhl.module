@@ -97,6 +97,7 @@ function ting_adhl_get_recommendations() {
       if (!empty($covers))
         $output = ting_adhl_render_cover($covers);
         ting_adhl_save_top_recommendation($covers);
+        ting_adhl_set_cache($covers, $object_id);
     }
   }
   return drupal_json_output($output);
@@ -115,7 +116,7 @@ function ting_adhl_render_cover($covers ) {
         'attributes' => array('title' => $object->title),
       );    
       $ownerId =  '773000';
-      $uri = 'ting/object/' . $ownerId . ':' . $object->localId;
+      $uri = 'ting/collection/' . $ownerId . ':' . $object->localId;
       $results[] = array(
         'snippet' => l($image, $uri, $options)
       );
@@ -238,6 +239,14 @@ function ting_adhl_check_covers($covers_ids, $number_of_results) {
     }
   }
   return $result_ids;
+}
+
+/**
+ * Sets a cached block of inpiration list in desired format.
+ */
+function ting_adhl_set_cache($covers, $object_id) {  
+   // Save cache for a week.
+   cache_set('ting-adhl-cache-' . $object_id, $covers, 'cache', time() + variable_get('ting_adhl_cache_lifetime',604800));
 }
 
 /**
