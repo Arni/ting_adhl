@@ -29,11 +29,12 @@ function ting_adhl_menu() {
 /**
  * Implements hook_theme().
  */
-function ting_adhl_theme() {
+function ting_adhl_theme($existing, $type, $theme, $path)  {
   return array(
-    'ting_adhl_recommendation_list' => array(
-      'variables' => array('type' => 'ul', 'items' => array()),
-      'template' => 'templates/ting_adhl_recommendation_list',
+    'covers_search_result' => array(
+      'variables' => array('title' => '', 'results' => array()),
+      'template' => 'covers-search-result',
+      'path' => $path . '/templates',
     ),
     'ting_adhl_recommendation_list_entry' => array(
       'variables' => array('item' => NULL),
@@ -124,20 +125,20 @@ function ting_adhl_render_cover($covers ) {
   }
     // Set default page result.
   $content = array(
-    '#theme' => 'ting_new_materials',
+    '#theme' => 'covers_search_result',
     '#title' => t('ADHL Recommendations'),
-    '#availability_legend' => NULL,
-    '#legend' => isset($legend) ? $legend : NULL,
+
   );
 
   // If any search result have been found add them to the array.
   if (!empty($results)) {
-    $content['#results'] = array(
-      '#theme' => 'covers_search_results',
-      '#results' => $results,
-    );
-  }
-  
+    $content['#results'] = $results;
+//    array(
+//      '#theme' => 'covers_search_results',
+//      '#results' => $results,
+//    );
+  }  
+
   return drupal_render($content);
 }
 
