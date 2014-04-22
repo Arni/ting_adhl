@@ -39,7 +39,7 @@ function ting_adhl_top_recommendation_list_content_type_render($subtype, $conf, 
     //drupal_add_js(drupal_get_path('module', 'ting_adhl') . '/js/ting_top_adhl.js');
 
   $output = '';
-  $number_of_results = 21;
+  $number_of_results = 14;
   $top_recommendations = variable_get('ting_adhl_top_recommendations');
   if ($top_recommendations) {
     $covers = ting_adhl_check_local_covers($top_recommendations);
