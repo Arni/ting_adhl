@@ -263,12 +263,12 @@ function ting_adhl_set_cache($covers, $object_id) {
  *    A file object or FALSE on error.
  */
 function ting_adhl_fetch_image($filename, $image_url) {
-  $result = ting_adhl_get_by_curl ($image_url); //To get by proxy on develplatform //drupal_http_request($image_url);
+  $result = drupal_http_request($image_url);
 
   //Bail if the HTTP request failed
-//  if ($result->code != 200) {
-//    return FALSE;
-//  }
+  if ($result->code != 200) {
+    return FALSE;
+  }
 
   // Get the folder for the final location of this preset...
   $directory = dirname($filename);
@@ -279,19 +279,9 @@ function ting_adhl_fetch_image($filename, $image_url) {
     return FALSE;
   }
 
-  return file_unmanaged_save_data($result, $filename, FILE_EXISTS_REPLACE);
+  return file_unmanaged_save_data($result->data, $filename, FILE_EXISTS_REPLACE);
 }
 
-//Developmentplatform has proxy
-function ting_adhl_get_by_curl ($url) {
-$agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.8) Gecko/2009032609 Firefox/3.0.8';
-$curl_handle=curl_init();
-curl_setopt($curl_handle, CURLOPT_PROXY, '172.18.0.30:8080');
-curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, 1);
-curl_setopt($curl_handle, CURLOPT_USERAGENT, $agent);
-curl_setopt($curl_handle,CURLOPT_URL, $url);
 
-return curl_exec($curl_handle);
-}
 
 
