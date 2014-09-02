@@ -189,10 +189,13 @@ function ting_adhl_save_top_recommendation($covers) {
 function ting_adhl_check_local_covers($covers_ids) {
   $result_ids = array();
   foreach ($covers_ids as $cover_id) {
-    $path = ting_covers_object_path($cover_id->localId);
-    if (file_exists($path)) {
-      $result_ids[$cover_id->localId] = $cover_id;
-    } 
+    if ($cover_id && isset($cover_id->localId)) {
+      $path = ting_covers_object_path($cover_id->localId);
+
+      if (file_exists($path)) {
+        $result_ids[$cover_id->localId] = $cover_id;
+      }
+    }
   }
   return $result_ids;
 }
