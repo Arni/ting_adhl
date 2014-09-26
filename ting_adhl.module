@@ -173,7 +173,7 @@ function ting_adhl_save_top_recommendation($covers) {
   }
   $found = FALSE;
   foreach ($top_recommendations as $object_key => $top_object) {
-    if ($top_object->localId == $object->localId) {
+    if (is_object($top_object) && is_object($object) && $top_object->localId == $object->localId) {
       unset($top_recommendations[$object_key]);
       $found = TRUE;
       break;
