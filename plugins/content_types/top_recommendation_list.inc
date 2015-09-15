@@ -37,16 +37,19 @@ function ting_adhl_top_recommendation_list_content_type_render($subtype, $conf, 
   // Get the objects to base the recommendation on based on the first supplied
   // context
     //drupal_add_js(drupal_get_path('module', 'ting_adhl') . '/js/ting_top_adhl.js');
+
   $output = '';
+  $number_of_results = 14;
   $top_recommendations = variable_get('ting_adhl_top_recommendations');
   if ($top_recommendations) {
-    $output = ting_adhl_render_cover($top_recommendations);
+    $covers = ting_adhl_check_local_covers($top_recommendations);
+    $covers = array_slice($covers, -$number_of_results);
+    $output = ting_adhl_render_cover($covers );
   }
 
   // Build the block, if then context was present.
   $block = new stdClass();
   $block->content = $output;
-
   return $block;
 }
 
