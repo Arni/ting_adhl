@@ -115,8 +115,9 @@ function ting_adhl_render_cover($covers ) {
       $options = array(
         'html' => TRUE,
         'attributes' => array('title' => $object->title),
-      );    
-      $ownerId =  '773000';
+        'query' => array ('WT.cg_n' => 'adhllink' ),
+      );
+      $ownerId =  '870970-basis';
       $uri = 'ting/collection/' . $ownerId . ':' . $object->localId;
       $results[] = array(
         'snippet' => l($image, $uri, $options)
@@ -137,7 +138,7 @@ function ting_adhl_render_cover($covers ) {
 //      '#theme' => 'covers_search_results',
 //      '#results' => $results,
 //    );
-  }  
+  }
 
   return drupal_render($content);
 }
@@ -180,7 +181,7 @@ function ting_adhl_save_top_recommendation($covers) {
     }
   }
   if (!$found && count($top_recommendations)>= $number_of_top_recommendations) {
-    array_shift($top_recommendations);   
+    array_shift($top_recommendations);
   }
   $top_recommendations[] = $object;
   variable_set('ting_adhl_top_recommendations',$top_recommendations);
@@ -192,7 +193,7 @@ function ting_adhl_check_local_covers($covers_ids) {
     $path = ting_covers_object_path($cover_id->localId);
     if (file_exists($path)) {
       $result_ids[$cover_id->localId] = $cover_id;
-    } 
+    }
   }
   return $result_ids;
 }
@@ -245,7 +246,7 @@ function ting_adhl_check_covers($covers_ids, $number_of_results) {
 /**
  * Sets a cached block of inpiration list in desired format.
  */
-function ting_adhl_set_cache($covers, $object_id) {  
+function ting_adhl_set_cache($covers, $object_id) {
    // Save cache for a week.
    cache_set('ting-adhl-cache-' . $object_id, $covers, 'cache', time() + variable_get('ting_adhl_cache_lifetime',604800));
 }
