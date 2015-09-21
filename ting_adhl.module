@@ -118,7 +118,7 @@ function ting_adhl_render_cover($covers ) {
         'query' => array ('WT.cg_n' => 'adhllink' ),
       );
       $ownerId =  '870970-basis';
-      $uri = 'ting/collection/' . $ownerId . ':' . $object->localId;
+      $uri = 'ting/object/' . $ownerId . ':' . $object->localId;
       $results[] = array(
         'snippet' => l($image, $uri, $options)
       );
