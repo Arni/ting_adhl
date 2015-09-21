@@ -287,7 +287,7 @@ function ting_adhl_fetch_image($filename, $image_url) {
 function ting_adhl_get_by_curl ($url) {
 $agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.8) Gecko/2009032609 Firefox/3.0.8';
 $curl_handle=curl_init();
-curl_setopt($curl_handle, CURLOPT_PROXY, '172.18.0.30:8080');
+//curl_setopt($curl_handle, CURLOPT_PROXY, '172.18.0.30:8080');
 curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, 1);
 curl_setopt($curl_handle, CURLOPT_USERAGENT, $agent);
 curl_setopt($curl_handle,CURLOPT_URL, $url);
