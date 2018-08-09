@@ -36,7 +36,7 @@ function ting_adhl_recommendation_list_ctools_content_types() {
 function ting_adhl_recommendation_list_content_type_render($subtype, $conf, $panel_args, $contexts) {
   $block = new stdClass();
   $block->content = '';
-
+file_put_contents("/var/www/drupalvm/drupal/debug/adhl1.txt", print_r("Ramt", TRUE), FILE_APPEND);
   $ting_object_id = ting_adhl_get_id($contexts);
   if ($ting_object_id) {
     $output = ting_adhl_check_cache($ting_object_id);

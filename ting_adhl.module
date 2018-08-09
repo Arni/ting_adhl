@@ -89,6 +89,7 @@ function ting_adhl_get_top_recommendations() {
 }
 
 function ting_adhl_get_recommendations() {
+  file_put_contents("/var/www/drupalvm/drupal/debug/adhl2.txt", print_r("Ramt", TRUE), FILE_APPEND);
   $object_id = $_POST['objectId'];
   $output = '';
   if ($object_id) {
@@ -154,12 +155,14 @@ function ting_adhl_render_cover($covers ) {
  *  An array of TingClientObjectRecommendation objects.
  */
 function ting_adhl_recommendations($faust, $numResults = 10) {
-  module_load_include('client.inc', 'ting');
-  $request = ting_get_request_factory()->getObjectRecommendationRequest();
+  module_load_include('client.inc', 'opensearch');
+  $adhl_url = variable_get('opensearch_recommendation_url', FALSE);
+  $request = new TingAdhlRequest($adhl_url); //opensearch_get_request_factory()->getObjectRecommendationRequest();
   $request->setFaust($faust);
   $request->setNumResults($numResults);
-  $res = ting_get_client()->execute($request);
-  $response = $request->parseResponse($res);
+  $res = opensearch_execute($request) ;
+  $response = $request->processResponse($res);
+  file_put_contents("/var/www/drupalvm/drupal/debug/adhl8.txt", print_r($response, TRUE), FILE_APPEND);
   return $response;
 }
 
@@ -188,60 +191,11 @@ function ting_adhl_save_top_recommendation($covers) {
 
 function ting_adhl_check_local_covers($covers_ids) {
   $result_ids = array();
+  $covers = array();
   foreach ($covers_ids as $cover_id) {
-    if ($cover_id && isset($cover_id->localId)) {
-      $path = ting_covers_object_path($cover_id->localId);
-
-      if (file_exists($path)) {
-        $result_ids[$cover_id->localId] = $cover_id;
-      }
-    }
+     $covers[] = $cover_id->ownerId . ':' . $cover_id->localId; 
   }
-  return $result_ids;
-}
-
-function ting_adhl_check_covers($covers_ids, $number_of_results) {
-  $result_ids = array();
-  $missing_images_local_ids = array();
-
-  foreach ($covers_ids as $cover_id) {
-    // Determine if the local id is a known negative.
-    if (cache_get('ting_covers:' . $cover_id->localId, FALSE)) {
-      continue;
-    }
-
-    $path = ting_covers_object_path($cover_id->localId);
-    if (file_exists($path)) {
-      $result_ids[$cover_id->localId] = $cover_id;
-    } else {
-      $missing_images_local_ids[] = (object) array(
-          'localIdentifier' => $cover_id->localId,
-          'libraryCode' => '773000',
-          'object' => $cover_id
-      );
-    }
-    if (count($result_ids) >= $number_of_results) {
-      return $result_ids;
-    }
-  }
-  $service = new AdditionalInformationService(variable_get('addi_wsdl_url'), variable_get('addi_username'), variable_get('addi_group'), variable_get('addi_password'));
-  // Local ids = Faust numbers. Library object identifiers can be confusing.
-  $additional_informations = $service->getByLocalIdentifier($missing_images_local_ids);
-
-  foreach ($missing_images_local_ids as $local_id) {
-    if (isset($additional_informations[$local_id->localIdentifier]) && $ai = $additional_informations[$local_id->localIdentifier]) {
-      if ($ai->detailUrl) {
-        $result_ids[$local_id->localIdentifier] = $local_id->object;
-        ting_adhl_fetch_image(ting_covers_object_path($local_id->localIdentifier), $ai->detailUrl);
-      } else if ($ai->thumbnailUrl) {
-        $result_ids[$local_id->localIdentifier] = $local_id->object;
-        ting_adhl_fetch_image(ting_covers_object_path($local_id->localIdentifier), $ai->thumbnailUrl);
-      }
-      if (count($result_ids) >= $number_of_results) {
-        break;
-      }
-    }
-  }
+  
   return $result_ids;
 }
 
@@ -283,6 +237,59 @@ function ting_adhl_fetch_image($filename, $image_url) {
   }
 
   return file_unmanaged_save_data($result->data, $filename, FILE_EXISTS_REPLACE);
+}
+
+class TingAdhlRequest extends TingClientRequest {
+  protected $faust;
+
+  public function getIsbn() {
+    return $this->isbn;
+  }
+
+  public function setFaust($faust) {
+    $this->faust = $faust;
+  }
+  
+   protected function getRequest() {
+    $this->setParameter('action', 'adhlRequest');
+    
+    if ($this->faust) {
+       $this->setParameter('id', array('faust' => $this->faust));
+     }
+
+    if ($this->numResults) {
+      $this->setParameter('numRecords', $this->numResults);
+    }
+
+    return $this;
+  }
+
+  public function processResponse(stdClass $response) {
+    if (isset($response->error)) {
+      throw new TingClientException('Error handling recommendation request: '.$response->error);
+    }
+    
+    $recommendations = array();
+    if (isset($response->adhlResponse->record)) {
+      foreach($response->adhlResponse->record as $record) {
+        $recommendation = new TingClientObjectRecommendation();
+        if ($id = $this->getValue($record->recordId)) {
+          $id = explode('|', $id, 2);
+          $recommendation->localId = $id[0];
+          $recommendation->ownerId = (isset($id[1])) ? $id[1] : null;
+          
+          $recommendations[] = $recommendation;
+        }
+      }
+    }
+
+    return $recommendations;
+  }
+  
+  public function parseResponse($response) {
+     //To avoid response being processed twice.
+     return $response;
+  }
 }
 
 
